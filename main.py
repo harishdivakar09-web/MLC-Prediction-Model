@@ -7,6 +7,7 @@ bowling_raw = pd.read_csv('bowlers.csv')
 team_raw = pd.read_csv('team_season.csv')
 
 #-------TEAM SCORE CODE---------
+
 #Modification of team.season.csv to include win percentage and dropping wins and losses columns
 team_raw['win_percentage_2023'] = round((team_raw['wins_2023']/(team_raw['wins_2023']+team_raw['losses_2023']))*100,4)
 team_raw['win_percentage_2024'] = round((team_raw['wins_2024']/(team_raw['wins_2024']+team_raw['losses_2024']))*100,4)
@@ -35,23 +36,64 @@ team_mod['standings_2024'] = team_mod['standings_2024'].str.strip().map(standing
 team_mod['standings_2025'] = team_mod['standings_2025'].str.strip().map(standing_points)
 
 #Weight assignment (either standings biased, NRR biased, or Win Percentage biased) 
+weight_1 = 0.4
+weight_2 = 0.2
+weight_3 = 0.114
 
-weights= pd.Series({
-    'nrr_2023': 0.114**3,
-    'win_percentage_2023': 0.2**3,
-    'standings_2023': 0.4**3,
-    'nrr_2024': 0.114*0.114,
-    'win_percentage_2024': 0.2*0.2,
-    'standings_2024': 0.4*0.4,
-    'nrr_2025': 0.114,
-    'win_percentage_2025': 0.2,
-    'standings_2025': 0.4
+weights_team= pd.Series({
+    'nrr_2023': weight_3**3,
+    'win_percentage_2023': weight_2**3,
+    'standings_2023': weight_1**3,
+    'nrr_2024': weight_3**2,
+    'win_percentage_2024': weight_2**2,
+    'standings_2024': weight_1**2,
+    'nrr_2025': weight_3,
+    'win_percentage_2025': weight_2,
+    'standings_2025': weight_1
 })
+
+#Final team score
 team_score = pd.DataFrame({
     'team_abrv' : team_raw['team_abrv'],
-    'team_score' : round(team_mod[weights.index].dot(weights), 4)
+    'team_score' : round(team_mod[weights_team.index].dot(weights_team), 4)
 })
+team_score = team_score.sort_values(by = 'team_abrv').reset_index(drop=True)
 
-print(team_score.head())
+# print(team_score)
 
 #-------BATTING SCORE CODE---------
+
+batting_mod_1 = batting_raw
+
+#Normalization of Strike Rate, Average, Fours, and Sixes
+batting_mod_1['MLC_strike_rate'] = round((batting_mod_1['MLC_strike_rate']-batting_mod_1['MLC_strike_rate'].min())/(batting_mod_1['MLC_strike_rate'].max()-batting_mod_1['MLC_strike_rate'].min()),4)
+batting_mod_1['MLC_average'] = round((batting_mod_1['MLC_average']-batting_mod_1['MLC_average'].min())/(batting_mod_1['MLC_average'].max()-batting_mod_1['MLC_average'].min()),4)
+batting_mod_1['MLC_fours'] = round((batting_mod_1['MLC_fours']-batting_mod_1['MLC_fours'].min())/(batting_mod_1['MLC_fours'].max()-batting_mod_1['MLC_fours'].min()),4)
+batting_mod_1['MLC_sixes'] = round((batting_mod_1['MLC_sixes']-batting_mod_1['MLC_sixes'].min())/(batting_mod_1['MLC_sixes'].max()-batting_mod_1['MLC_sixes'].min()),4)
+
+#Aggregating player statistics into team statistics
+batting_mod_2 = batting_mod_1.groupby('team_abrv_unordered').agg({
+    'MLC_strike_rate': 'mean',
+    'MLC_average': 'mean',
+    'MLC_fours': 'mean',
+    'MLC_sixes': 'mean'
+}).reset_index()
+
+#Weight assignment
+weights_batting= pd.Series({
+    'MLC_strike_rate': 0.35,
+    'MLC_average': 0.4,
+    'MLC_fours': 0.125,
+    'MLC_sixes': 0.125
+})
+
+#Final batting score
+
+batting_score = pd.DataFrame({
+    'team_abrv' : batting_mod_2['team_abrv_unordered'],
+    'batting_score' : round(batting_mod_2[weights_batting.index].dot(weights_batting), 4)
+})
+batting_score = batting_score.sort_values(by = 'team_abrv').reset_index(drop=True)
+# print(batting_score)
+
+#-------BOWLING SCORE CODE---------
