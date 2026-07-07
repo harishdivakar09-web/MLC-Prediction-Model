@@ -56,8 +56,7 @@ weights_team= pd.Series({
 team_score = pd.DataFrame({
     'team_abrv' : team_raw['team_abrv'],
     'team_score' : round(team_mod[weights_team.index].dot(weights_team), 4)
-})
-team_score = team_score.sort_values(by = 'team_abrv').reset_index(drop=True)
+}).sort_values(by = 'team_abrv').reset_index(drop=True)
 team_score.iloc[5,0] = 'WAF'
 
 # print(team_score)
@@ -78,8 +77,8 @@ batting_mod_2 = batting_mod_1.groupby('team_abrv_unordered').agg({
     'MLC_average': 'mean',
     'MLC_fours': 'mean',
     'MLC_sixes': 'mean'
-}).reset_index()
-batting_mod_2[['MLC_strike_rate','MLC_average','MLC_fours','MLC_sixes']] = batting_mod_2[[ 'MLC_strike_rate','MLC_average','MLC_fours','MLC_sixes']].round(4)
+}).round(4).reset_index()
+
 
 #Weight assignment
 weights_batting= pd.Series({
@@ -94,8 +93,7 @@ weights_batting= pd.Series({
 batting_score = pd.DataFrame({
     'team_abrv' : batting_mod_2['team_abrv_unordered'],
     'batting_score' : round(batting_mod_2[weights_batting.index].dot(weights_batting), 4)
-})
-batting_score = batting_score.sort_values(by = 'team_abrv').reset_index(drop=True)
+}).sort_values(by = 'team_abrv').reset_index(drop=True)
 # print(batting_score)
 
 #-------BOWLING SCORE---------
@@ -112,8 +110,8 @@ bowling_mod_2 = bowling_mod_1.groupby('team_abrv').agg({
     'MLC_economy': 'mean',
     'MLC_strike_rate': 'mean',
     'MLC_average': 'mean'
-}).reset_index()
-bowling_mod_2[['MLC_wickets','MLC_economy','MLC_strike_rate','MLC_average']] = bowling_mod_2[['MLC_wickets','MLC_economy','MLC_strike_rate','MLC_average']].round(4)
+}).round(4).reset_index()
+
 
 #Weight assignment
 weights_bowling= pd.Series({
@@ -127,8 +125,7 @@ weights_bowling= pd.Series({
 bowling_score = pd.DataFrame({
     'team_abrv' : bowling_mod_2['team_abrv'],
     'bowling_score' : round(bowling_mod_2[weights_bowling.index].dot(weights_bowling), 4)
-})
-bowling_score = bowling_score.sort_values(by = 'team_abrv').reset_index(drop=True)
+}).sort_values(by = 'team_abrv').reset_index(drop=True)
 
 #-------ALL-ROUNDER SCORE---------
 all_rounder_mod_1 = all_rounder_raw.copy()
@@ -161,14 +158,14 @@ all_rounder_mod_2 = all_rounder_mod_1.groupby('team_abrv').agg({
 
 #Weight assignment
 weights_all_rounder= pd.Series({
-    'MLC_strike_rate': 0.1,
-    'MLC_average': 0.1,
-    'MLC_fours': 0.05,
-    'MLC_sixes': 0.05,
-    'MLC_wickets': 0.2,
-    'MLC_average_bowling': 0.2,
-    'MLC_economy': 0.2,
-    'MLC_strike_rate_bowling': 0.1
+    'MLC_strike_rate': 0.25,
+    'MLC_average': 0.3,
+    'MLC_fours': 0.00625,
+    'MLC_sixes': 0.00625,
+    'MLC_wickets': 0.0125,
+    'MLC_average_bowling': 0.05,
+    'MLC_economy': 0.3,
+    'MLC_strike_rate_bowling': 0.075
 })
 
 #Final all-rounder score
@@ -181,16 +178,15 @@ all_rounder_score = pd.DataFrame({
 all_scores = team_score.merge(batting_score, on = 'team_abrv', how ='left').merge(bowling_score, on = 'team_abrv', how = 'left').merge(all_rounder_score, on = 'team_abrv', how = 'left')
 
 score_weights = pd.Series({
-    'team_score': 0.4,
-    'batting_score': 0.2,
-    'bowling_score': 0.2,
-    'all_rounder_score': 0.2
+    'team_score': 0.5,
+    'batting_score': 0.1,
+    'bowling_score': 0.1,
+    'all_rounder_score': 0.3
 })
 
 #Final score
 final_score = pd.DataFrame({
-    'team_name' : all_scores['team_abrv'],
+    'team_abrv' : all_scores['team_abrv'],
     'final_score' : round(all_scores[score_weights.index].dot(score_weights), 4)
-})
-
+}).sort_values(by = 'final_score', ascending=False).reset_index(drop=True)
 print(final_score)
