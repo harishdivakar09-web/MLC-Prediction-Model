@@ -36,9 +36,10 @@ team_mod['standings_2024'] = team_mod['standings_2024'].str.strip().map(standing
 team_mod['standings_2025'] = team_mod['standings_2025'].str.strip().map(standing_points)
 
 #Weight assignment (either standings biased, NRR biased, or Win Percentage biased) 
-weight_1 = 0.4
-weight_2 = 0.2
-weight_3 = 0.114
+weight_1 = 0.5
+weight_2 = 0.1
+weight_3 = 0.0138
+
 
 weights_team= pd.Series({
     'nrr_2023': weight_3**3,
@@ -82,10 +83,10 @@ batting_mod_2 = batting_mod_1.groupby('team_abrv_unordered').agg({
 
 #Weight assignment
 weights_batting= pd.Series({
-    'MLC_strike_rate': 0.35,
+    'MLC_strike_rate': 0.3,
     'MLC_average': 0.4,
-    'MLC_fours': 0.125,
-    'MLC_sixes': 0.125
+    'MLC_fours': 0.15,
+    'MLC_sixes': 0.15
 })
 
 #Final batting score
@@ -101,8 +102,8 @@ batting_score = pd.DataFrame({
 bowling_mod_1 = bowling_raw.copy()
 bowling_mod_1['MLC_wickets'] = round((bowling_mod_1['MLC_wickets']-bowling_mod_1['MLC_wickets'].min())/(bowling_mod_1['MLC_wickets'].max()-bowling_mod_1['MLC_wickets'].min()),4)
 bowling_mod_1['MLC_economy'] = round((bowling_mod_1['MLC_economy']-bowling_mod_1['MLC_economy'].max())/(bowling_mod_1['MLC_economy'].min()-bowling_mod_1['MLC_economy'].max()),4)
-bowling_mod_1['MLC_strike_rate'] = round((bowling_mod_1['MLC_strike_rate']-bowling_mod_1['MLC_strike_rate'].min())/(bowling_mod_1['MLC_strike_rate'].max()-bowling_mod_1['MLC_strike_rate'].min()),4)
-bowling_mod_1['MLC_average'] = round((bowling_mod_1['MLC_average']-bowling_mod_1['MLC_average'].min())/(bowling_mod_1['MLC_average'].max()-bowling_mod_1['MLC_average'].min()),4)
+bowling_mod_1['MLC_strike_rate'] = round((bowling_mod_1['MLC_strike_rate']-bowling_mod_1['MLC_strike_rate'].max())/(bowling_mod_1['MLC_strike_rate'].min()-bowling_mod_1['MLC_strike_rate'].max()),4)
+bowling_mod_1['MLC_average'] = round((bowling_mod_1['MLC_average']-bowling_mod_1['MLC_average'].max())/(bowling_mod_1['MLC_average'].min()-bowling_mod_1['MLC_average'].max()),4)
 
 #Aggregating player statistics into team statistics
 bowling_mod_2 = bowling_mod_1.groupby('team_abrv').agg({
@@ -116,9 +117,9 @@ bowling_mod_2 = bowling_mod_1.groupby('team_abrv').agg({
 #Weight assignment
 weights_bowling= pd.Series({
     'MLC_wickets': 0.1,
-    'MLC_economy': 0.5,
+    'MLC_economy': 0.4,
     'MLC_strike_rate': 0.3,
-    'MLC_average': 0.1
+    'MLC_average': 0.2
 })
 
 #Final bowling score
@@ -159,13 +160,13 @@ all_rounder_mod_2 = all_rounder_mod_1.groupby('team_abrv').agg({
 #Weight assignment
 weights_all_rounder= pd.Series({
     'MLC_strike_rate': 0.25,
-    'MLC_average': 0.3,
-    'MLC_fours': 0.00625,
-    'MLC_sixes': 0.00625,
-    'MLC_wickets': 0.0125,
-    'MLC_average_bowling': 0.05,
+    'MLC_average': 0.15,
+    'MLC_fours': 0.005,
+    'MLC_sixes': 0.005,
+    'MLC_wickets': 0.005,
+    'MLC_average_bowling': 0.005,
     'MLC_economy': 0.3,
-    'MLC_strike_rate_bowling': 0.075
+    'MLC_strike_rate_bowling': 0.1
 })
 
 #Final all-rounder score
