@@ -1,10 +1,13 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 
 #Creating dataframes for each csv file
 batting_raw = pd.read_csv('batters.csv')
 all_rounder_raw = pd.read_csv('all_rounders.csv')
 bowling_raw = pd.read_csv('bowlers.csv')
 team_raw = pd.read_csv('team_season.csv')
+
+
 
 #-------TEAM SCORE CODE---------
 
@@ -14,6 +17,18 @@ team_raw['win_percentage_2024'] = round((team_raw['wins_2024']/(team_raw['wins_2
 team_raw['win_percentage_2025'] = round((team_raw['wins_2025']/(team_raw['wins_2025']+team_raw['losses_2025']))*100,4)
 team_mod = team_raw.drop(columns = ['wins_2023', 'losses_2023','wins_2024','losses_2024','wins_2025','losses_2025'])
 
+years = [2023, 2024, 2025]
+nrr = ['nrr_2023', 'nrr_2024', 'nrr_2025']
+plt.figure(figsize=(8,5))
+for index in list(team_mod.index):
+    plt.plot(years, team_mod.iloc[index][nrr])
+plt.xlabel('Year')
+plt.xticks(years)
+plt.ylabel('NRR')
+plt.grid(True, alpha=0.5)
+plt.legend(team_mod['team_abrv'], loc = 'center left' , bbox_to_anchor = (1,0.5))
+plt.show()
+
 
 #Normalization of NRR, Win Percentage, and Standings
 team_mod['nrr_2023'] = round((team_mod['nrr_2023']-team_mod['nrr_2023'].min())/(team_mod['nrr_2023'].max()-team_mod['nrr_2023'].min()),4)
@@ -22,6 +37,8 @@ team_mod['nrr_2025'] = round((team_mod['nrr_2025']-team_mod['nrr_2025'].min())/(
 team_mod['win_percentage_2023'] = round((team_mod['win_percentage_2023']-team_mod['win_percentage_2023'].min())/(team_mod['win_percentage_2023'].max()-team_mod['win_percentage_2023'].min()),4)
 team_mod['win_percentage_2024'] = round((team_mod['win_percentage_2024']-team_mod['win_percentage_2024'].min())/(team_mod['win_percentage_2024'].max()-team_mod['win_percentage_2024'].min()),4)
 team_mod['win_percentage_2025'] = round((team_mod['win_percentage_2025']-team_mod['win_percentage_2025'].min())/(team_mod['win_percentage_2025'].max()-team_mod['win_percentage_2025'].min()),4)
+
+
 
 standing_points= {
     'Group' : 0.0,
@@ -35,7 +52,9 @@ team_mod['standings_2023'] = team_mod['standings_2023'].str.strip().map(standing
 team_mod['standings_2024'] = team_mod['standings_2024'].str.strip().map(standing_points)
 team_mod['standings_2025'] = team_mod['standings_2025'].str.strip().map(standing_points)
 
-#Weight assignment (either standings biased, NRR biased, or Win Percentage biased) 
+
+
+#Weight assignment (Team weightings to be adjusted)
 weight_1 = 0.5
 weight_2 = 0.1
 weight_3 = 0.0138
@@ -60,7 +79,7 @@ team_score = pd.DataFrame({
 }).sort_values(by = 'team_abrv').reset_index(drop=True)
 team_score.iloc[5,0] = 'WAF'
 
-# print(team_score)
+
 
 #-------BATTING SCORE---------
 
@@ -95,7 +114,7 @@ batting_score = pd.DataFrame({
     'team_abrv' : batting_mod_2['team_abrv_unordered'],
     'batting_score' : round(batting_mod_2[weights_batting.index].dot(weights_batting), 4)
 }).sort_values(by = 'team_abrv').reset_index(drop=True)
-# print(batting_score)
+
 
 #-------BOWLING SCORE---------
 #Normalization of Wickets, Economy, Strike Rate, and Average
@@ -112,6 +131,9 @@ bowling_mod_2 = bowling_mod_1.groupby('team_abrv').agg({
     'MLC_strike_rate': 'mean',
     'MLC_average': 'mean'
 }).round(4).reset_index()
+
+
+
 
 
 #Weight assignment
