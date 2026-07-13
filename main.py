@@ -1,6 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+plt.style.use('bmh')
+
 #Creating dataframes for each csv file
 batting_raw = pd.read_csv('batters.csv')
 all_rounder_raw = pd.read_csv('all_rounders.csv')
@@ -10,13 +12,14 @@ team_raw = pd.read_csv('team_season.csv')
 
 
 #-------TEAM SCORE CODE---------
-
+team_mod = team_raw.copy()
 #Modification of team.season.csv to include win percentage and dropping wins and losses columns
-team_raw['win_percentage_2023'] = round((team_raw['wins_2023']/(team_raw['wins_2023']+team_raw['losses_2023']))*100,4)
-team_raw['win_percentage_2024'] = round((team_raw['wins_2024']/(team_raw['wins_2024']+team_raw['losses_2024']))*100,4)
-team_raw['win_percentage_2025'] = round((team_raw['wins_2025']/(team_raw['wins_2025']+team_raw['losses_2025']))*100,4)
-team_mod = team_raw.drop(columns = ['wins_2023', 'losses_2023','wins_2024','losses_2024','wins_2025','losses_2025'])
+team_mod['win_percentage_2023'] = round((team_raw['wins_2023']/(team_raw['wins_2023']+team_raw['losses_2023']))*100,4)
+team_mod['win_percentage_2024'] = round((team_raw['wins_2024']/(team_raw['wins_2024']+team_raw['losses_2024']))*100,4)
+team_mod['win_percentage_2025'] = round((team_raw['wins_2025']/(team_raw['wins_2025']+team_raw['losses_2025']))*100,4)
+team_mod.drop(columns = ['wins_2023', 'losses_2023','wins_2024','losses_2024','wins_2025','losses_2025'], inplace = True)
 
+#Creating graphs to analyze trends between years
 years = [2023, 2024, 2025]
 nrr = ['nrr_2023', 'nrr_2024', 'nrr_2025']
 plt.figure(figsize=(8,5))
@@ -55,9 +58,10 @@ team_mod['standings_2025'] = team_mod['standings_2025'].str.strip().map(standing
 
 
 #Weight assignment (Team weightings to be adjusted)
-weight_1 = 0.5
-weight_2 = 0.1
-weight_3 = 0.0138
+weight_1 = 0.35
+weight_2 = 0.2
+weight_3 = 0.19246
+
 
 
 weights_team= pd.Series({
@@ -85,6 +89,13 @@ team_score.iloc[5,0] = 'WAF'
 
 batting_mod_1 = batting_raw.copy()
 
+#Graphing batting categories to visualize skewness
+plt.figure(figsize = (10,6))
+plt.boxplot(batting_mod_1.loc[:, 'MLC_strike_rate' : ], orientation = 'horizontal')
+plt.yticks(ticks = [1,2,3,4], labels = ['Strike Rate', 'Average', 'Fours', 'Sixes'])
+plt.ylabel('Batting Category')
+plt.show()
+
 #Normalization of Strike Rate, Average, Fours, and Sixes
 batting_mod_1['MLC_strike_rate'] = round((batting_mod_1['MLC_strike_rate']-batting_mod_1['MLC_strike_rate'].min())/(batting_mod_1['MLC_strike_rate'].max()-batting_mod_1['MLC_strike_rate'].min()),4)
 batting_mod_1['MLC_average'] = round((batting_mod_1['MLC_average']-batting_mod_1['MLC_average'].min())/(batting_mod_1['MLC_average'].max()-batting_mod_1['MLC_average'].min()),4)
@@ -98,6 +109,7 @@ batting_mod_2 = batting_mod_1.groupby('team_abrv_unordered').agg({
     'MLC_fours': 'mean',
     'MLC_sixes': 'mean'
 }).round(4).reset_index()
+
 
 
 #Weight assignment
