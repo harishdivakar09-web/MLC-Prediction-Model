@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 plt.style.use('bmh')
+plt.figure(figsize= (14,10))
 
 #Creating dataframes for each csv file
 batting_raw = pd.read_csv('batters.csv')
@@ -19,18 +20,23 @@ team_mod['win_percentage_2024'] = round((team_raw['wins_2024']/(team_raw['wins_2
 team_mod['win_percentage_2025'] = round((team_raw['wins_2025']/(team_raw['wins_2025']+team_raw['losses_2025']))*100,4)
 team_mod.drop(columns = ['wins_2023', 'losses_2023','wins_2024','losses_2024','wins_2025','losses_2025'], inplace = True)
 
-#Creating graphs to analyze trends between years
+#Creating line graphs to analyze trends between years and quantitative variables
 years = [2023, 2024, 2025]
-nrr = ['nrr_2023', 'nrr_2024', 'nrr_2025']
-plt.figure(figsize=(8,5))
-for index in list(team_mod.index):
-    plt.plot(years, team_mod.iloc[index][nrr])
-plt.xlabel('Year')
-plt.xticks(years)
-plt.ylabel('NRR')
-plt.grid(True, alpha=0.5)
-plt.legend(team_mod['team_abrv'], loc = 'center left' , bbox_to_anchor = (1,0.5))
-plt.show()
+y_axis_graphs = [['nrr_2023', 'nrr_2024', 'nrr_2025'], ['win_percentage_2023', 'win_percentage_2024', 'win_percentage_2025']]
+y_axis_labels = ['NRR' , 'Win Percentage']
+
+for _ in range(2):
+    for index in range(6):
+        plt.plot(years, team_mod.iloc[index][y_axis_graphs[_]])
+    plt.xlabel('Year', labelpad= 5)
+    plt.xticks(years)
+    plt.ylabel(y_axis_labels[_], labelpad = 5)
+    plt.grid(True, alpha=0.5)
+    plt.legend(team_mod['team_abrv'], loc = 'center left' , bbox_to_anchor = (1,0.5))
+    plt.show()
+
+#Bar graph for categorical variables
+
 
 
 #Normalization of NRR, Win Percentage, and Standings
@@ -90,7 +96,6 @@ team_score.iloc[5,0] = 'WAF'
 batting_mod_1 = batting_raw.copy()
 
 #Graphing batting categories to visualize skewness
-plt.figure(figsize = (10,6))
 plt.boxplot(batting_mod_1.loc[:, 'MLC_strike_rate' : ], orientation = 'horizontal')
 plt.yticks(ticks = [1,2,3,4], labels = ['Strike Rate', 'Average', 'Fours', 'Sixes'])
 plt.ylabel('Batting Category')
@@ -103,12 +108,9 @@ batting_mod_1['MLC_fours'] = round((batting_mod_1['MLC_fours']-batting_mod_1['ML
 batting_mod_1['MLC_sixes'] = round((batting_mod_1['MLC_sixes']-batting_mod_1['MLC_sixes'].min())/(batting_mod_1['MLC_sixes'].max()-batting_mod_1['MLC_sixes'].min()),4)
 
 #Aggregating player statistics into team statistics
-batting_mod_2 = batting_mod_1.groupby('team_abrv_unordered').agg({
-    'MLC_strike_rate': 'mean',
-    'MLC_average': 'mean',
-    'MLC_fours': 'mean',
-    'MLC_sixes': 'mean'
-}).round(4).reset_index()
+batting_list = list(batting_mod_1.columns)
+batting_mod_2 = batting_mod_1.groupby('team_abrv_unordered')[batting_list[4:]].mean().round(4).reset_index()
+
 
 
 
@@ -137,12 +139,8 @@ bowling_mod_1['MLC_strike_rate'] = round((bowling_mod_1['MLC_strike_rate']-bowli
 bowling_mod_1['MLC_average'] = round((bowling_mod_1['MLC_average']-bowling_mod_1['MLC_average'].max())/(bowling_mod_1['MLC_average'].min()-bowling_mod_1['MLC_average'].max()),4)
 
 #Aggregating player statistics into team statistics
-bowling_mod_2 = bowling_mod_1.groupby('team_abrv').agg({
-    'MLC_wickets': 'mean',
-    'MLC_economy': 'mean',
-    'MLC_strike_rate': 'mean',
-    'MLC_average': 'mean'
-}).round(4).reset_index()
+bowling_list = list(bowling_mod_1.columns)
+bowling_mod_2 = bowling_mod_1.groupby('team_abrv')[bowling_list[4:]].mean().round(4).reset_index()
 
 
 
@@ -180,16 +178,8 @@ all_rounder_mod_1['MLC_economy'] = round((all_rounder_mod_1['MLC_economy']-all_r
 all_rounder_mod_1['MLC_strike_rate_bowling'] = round((all_rounder_mod_1['MLC_strike_rate_bowling']-all_rounder_mod_1['MLC_strike_rate_bowling'].max())/(all_rounder_mod_1['MLC_strike_rate_bowling'].min()-all_rounder_mod_1['MLC_strike_rate_bowling'].max()),4)
 
 #Aggregating player statistics into team statistics
-all_rounder_mod_2 = all_rounder_mod_1.groupby('team_abrv').agg({
-    'MLC_strike_rate': 'mean',
-    'MLC_average': 'mean',
-    'MLC_fours': 'mean',
-    'MLC_sixes': 'mean',
-    'MLC_wickets': 'mean',
-    'MLC_average_bowling': 'mean',
-    'MLC_economy': 'mean',
-    'MLC_strike_rate_bowling': 'mean'
-}).round(4).reset_index()
+all_rounder_list = list(all_rounder_mod_1.columns)
+all_rounder_mod_2 = all_rounder_mod_1.groupby('team_abrv')[all_rounder_list[4:]].mean().round(4).reset_index()
 
 #Weight assignment
 weights_all_rounder= pd.Series({
