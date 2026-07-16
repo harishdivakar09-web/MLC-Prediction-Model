@@ -114,10 +114,10 @@ batting_mod_2 = batting_mod_1.groupby('team_abrv_unordered')[batting_list[4:]].m
 
 #Weight assignment
 weights_batting= pd.Series({
-    'MLC_strike_rate': 0.3,
-    'MLC_average': 0.4,
-    'MLC_fours': 0.15,
-    'MLC_sixes': 0.15
+    'MLC_strike_rate': 0.5,
+    'MLC_average': 0.3,
+    'MLC_fours': 0.1,
+    'MLC_sixes': 0.1
 })
 
 #Final batting score
@@ -131,6 +131,15 @@ batting_score = pd.DataFrame({
 #-------BOWLING SCORE---------
 #Normalization of Wickets, Economy, Strike Rate, and Average
 bowling_mod_1 = bowling_raw.copy()
+
+print(bowling_mod_1['MLC_economy'].describe())
+
+#Boxplot of bowling stats
+plt.boxplot(bowling_mod_1.loc[:, 'MLC_wickets':], orientation = 'horizontal')
+plt.yticks(ticks = [1,2,3,4], labels = ["Wickets", "Economy", "Strike Rate", "Average"])
+plt.ylabel("Bowling Category")
+plt.show()
+
 bowling_mod_1['MLC_wickets'] = round((bowling_mod_1['MLC_wickets']-bowling_mod_1['MLC_wickets'].min())/(bowling_mod_1['MLC_wickets'].max()-bowling_mod_1['MLC_wickets'].min()),4)
 bowling_mod_1['MLC_economy'] = round((bowling_mod_1['MLC_economy']-bowling_mod_1['MLC_economy'].max())/(bowling_mod_1['MLC_economy'].min()-bowling_mod_1['MLC_economy'].max()),4)
 bowling_mod_1['MLC_strike_rate'] = round((bowling_mod_1['MLC_strike_rate']-bowling_mod_1['MLC_strike_rate'].max())/(bowling_mod_1['MLC_strike_rate'].min()-bowling_mod_1['MLC_strike_rate'].max()),4)
@@ -138,24 +147,16 @@ bowling_mod_1['MLC_average'] = round((bowling_mod_1['MLC_average']-bowling_mod_1
 
 
 
-#Boxplot of bowling stats
-plt.boxplot(bowling_mod_1.loc[:, 'MLC_wickets':], orientation = 'horizontal')
-plt.yticks([1,2,3,4], list(bowling_mod_1.columns).replace("_"," ")[4:])
-plt.show()
 #Aggregating player statistics into team statistics
 bowling_list = list(bowling_mod_1.columns)
 bowling_mod_2 = bowling_mod_1.groupby('team_abrv')[bowling_list[4:]].mean().round(4).reset_index()
 
-
-
-
-
 #Weight assignment
 weights_bowling= pd.Series({
-    'MLC_wickets': 0.1,
+    'MLC_wickets': 0.3,
     'MLC_economy': 0.4,
-    'MLC_strike_rate': 0.3,
-    'MLC_average': 0.2
+    'MLC_strike_rate': 0.2,
+    'MLC_average': 0.1
 })
 
 #Final bowling score
@@ -170,6 +171,12 @@ all_rounder_mod_1.rename(columns = {
     'MLC_average.1':'MLC_average_bowling',
     'MLC_strike_rate.1':'MLC_strike_rate_bowling'
 }, inplace = True)
+
+#All Rounder Box Plot
+plt.boxplot(all_rounder_mod_1.iloc[:, 4:], orientation="horizontal")
+plt.yticks(ticks=[1,2,3,4,5,6,7,8], labels = ["Batting Strike Rate", "Batting Average", "Fours", "Sixes", "Wickets", "Bowling Average", "Economy", "Bowling Strike Rate"])
+plt.ylabel("All Rounder Category")
+plt.show()
 
 #Normalization of Strike Rate, Average, Fours, Sixes, Wickets, Economy, Strike Rate (Bowling), and Average (Bowling)
 all_rounder_mod_1['MLC_strike_rate'] = round((all_rounder_mod_1['MLC_strike_rate']-all_rounder_mod_1['MLC_strike_rate'].min())/(all_rounder_mod_1['MLC_strike_rate'].max()-all_rounder_mod_1['MLC_strike_rate'].min()),4)
